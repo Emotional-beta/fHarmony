@@ -105,7 +105,7 @@ struct MainPage {
                   .width(72)
                 Text('智能插座')
               }.onClick(()=>{
-                this.getUIContext().getRouter().pushUrl({url:'pages/SwitchPage'});
+                //this.getUIContext().getRouter().pushUrl({url:'pages/SwitchPage'});
               })
             }
             GridItem(){
@@ -123,7 +123,7 @@ struct MainPage {
                   .width(72)
                 Text('标准人体活动传感器')
               }.onClick(()=>{
-                this.getUIContext().getRouter().pushUrl({url:'pages/DbPage'});
+                this.getUIContext().getRouter().pushUrl({url:'pages/MSPage'});
               })
             }
             GridItem(){
