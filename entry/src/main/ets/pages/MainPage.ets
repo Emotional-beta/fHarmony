@@ -93,19 +93,42 @@ class DataProcessor {
 @Entry
 @Component
 struct MainPage {
+  aboutToAppear():void{
+      let url = 'http://192.168.100.1/api/room/allDevAndProcess';
+      let pref=preferences.getPreferencesSync(getContext(),{name:'zbox.xml'});
+      let cookie = pref.getSync('cookie','') as string;
+      // 省略4个参数 获取所有设备信息
+      //传入IEEE 获取指定设备信息
+      axios.post(url,null,{timeout:1000,headers:{'Content-Type':'application/json','cookie':cookie}})
+        .then((resp:AxiosResponse)=>{
+          console.log(JSON.stringify(resp));
+        })
+        .catch((err:AxiosError)=>{
+          this.getUIContext().getPromptAction().showToast({ message: err.message })
+        })
+  }
   build() {
     Tabs({barPosition:BarPosition.End}){
-
       TabContent(){
         Column(){
           Grid(){//栅格式布局
+            //读取本地的devices.xml
+            //for each：
+                //根据xml里的类型来弄图片
+                //根据xml里的名字来弄名字
+                //右上生成‘设置’按钮
+                  //1.重命名，2.删除
+            //右上角button增加设备
+                //手动添加设备类型（下选框）、设备名、ieee地址
+                //自动扫描设备
+
             GridItem(){
               Column({ space: 5 }){
                 Image($r('app.media.icon_main_photo_a'))
                   .width(72)
                 Text('智能插座')
               }.onClick(()=>{
-                this.getUIContext().getRouter().pushUrl({url:'pages/SwitchPage'});
+                //this.getUIContext().getRouter().pushUrl({url:'pages/SwitchPage'});
               })
             }
             GridItem(){
@@ -123,7 +146,7 @@ struct MainPage {
                   .width(72)
                 Text('标准人体活动传感器')
               }.onClick(()=>{
-                this.getUIContext().getRouter().pushUrl({url:'pages/DbPage'});
+                this.getUIContext().getRouter().pushUrl({url:'pages/MSPage'});
               })
             }
             GridItem(){
@@ -157,28 +180,6 @@ struct MainPage {
               Column({ space: 5 }){
                 Image($r('app.media.icon_main_scene_a'))
                   .width(72)
-                Text('获取所有设备信息')
-              }
-              .onClick(()=>{
-                let url = 'http://192.168.100.1/api/room/allDevAndProcess';
-                let pref=preferences.getPreferencesSync(getContext(),{name:'zbox.xml'});
-                let cookie = pref.getSync('cookie','') as string;
-                // 省略4个参数 获取所有设备信息
-                //传入IEEE 获取指定设备信息
-                axios.post(url,null,{timeout:1000,headers:{'Content-Type':'application/json','cookie':cookie}})
-                  .then((resp:AxiosResponse)=>{
-                    console.log(JSON.stringify(resp));
-
-                  })
-                  .catch((err:AxiosError)=>{
-                    this.getUIContext().getPromptAction().showToast({ message: err.message })
-                  })
-              })
-            }
-            GridItem(){
-              Column({ space: 5 }){
-                Image($r('app.media.icon_main_scene_a'))
-                  .width(72)
                 Text('增加新的设备')
               }
               .onClick(()=>{
@@ -189,7 +190,7 @@ struct MainPage {
           .height('100%')
           .width('100%')
           .padding({left:18,right:18})//内边距
-          .columnsTemplate('1fr 1fr 1fr 1fr')
+          .columnsTemplate('1fr 1fr')
           .columnsGap(20) //列间距
           .rowsGap(10) //行间距
 
@@ -213,7 +214,7 @@ struct MainPage {
       .tabBar('场景')
 
       TabContent(){
-        Text('我的信息').fontSize(20)
+
       }
       .tabBar('我的')
     }

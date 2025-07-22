@@ -3,7 +3,7 @@ import axios, { AxiosError, AxiosResponse, AxiosResponseTransformer } from '@oho
 import CryptoJS from '@ohos/crypto-js'
 import { preferences } from '@kit.ArkData';
 interface LoginUser {
-  username:string,
+  username:string ,
   password:string
 }@Entry
 @Component
@@ -13,8 +13,8 @@ struct LoginPage {
   //@state 状态变量 如果状态值改变会自动刷新UI
   //$$变量名 UI组件导致值的更新，会同步到普通变量
 
-  @State username:string='';
-  @State password:string='';
+  @State username:string='admin';
+  @State password:string='a';
   @State agree:boolean=false;
   is_password_correct:string='';
 
