@@ -6,17 +6,18 @@ import axios, { AxiosError, AxiosResponse } from '@ohos/axios';
 interface IEEE {
   ieee:string
 }
+
 @Entry
 @Component
 
-struct DbPage {
+struct MSPage {
 
   @State rname: string = 'N/A';
   @State battery: string = 'N/A';
   @State rssi: string = 'N/A';
   @State value: string = 'N/A';
   @State updateTime: string = 'N/A';
-
+  @State out_of_date: string = 'N/A';
 
   build() {
     Column({space:20}){
@@ -37,22 +38,25 @@ struct DbPage {
           axios.post(url, {ieee:'5c0272fffe8576cb'} as IEEE,{timeout:1000,headers:{'Content-Type':'application/json','cookie':cookie}})
             .then((resp:AxiosResponse)=>{
               console.log(JSON.stringify(resp));
-              this.getUIContext().getPromptAction().showToast({ message: JSON.stringify(resp.data.data.deviceInfos.envs.rname) })
-              //this.rname=resp.data.data.deviceInfos.envs.rname;
-              //this.battery=resp.data.data.deviceInfos.envs.battery;
-              //this.rssi=resp.data.data.deviceInfos.envs.rssi;
-              //this.value=resp.data.data.deviceInfos.envs.properties.value;
-              //this.updateTime=resp.data.data.deviceInfos.envs.updateTime;
-              //Text('设备名称：'+this.rname);
-              //Text('电量：'+this.battery);
-              //Text('信号强度：'+this.rssi+'dBm');
-              //Text('活动状态：'+this.value);
-              //Text('更新时间：'+this.updateTime);
+              this.rname=resp.data.data.deviceInfos.envs[0].rname;
+              //this.getUIContext().getPromptAction().showToast({ message: JSON.stringify(resp)});
+              this.battery=resp.data.data.deviceInfos.envs[0].battery;
+              this.rssi=resp.data.data.deviceInfos.envs[0].rssi;
+              this.value=resp.data.data.deviceInfos.envs[0].properties[0].value;
+              this.updateTime=resp.data.data.deviceInfos.envs[0].updateTime;
+              this.out_of_date=resp.data.data.deviceInfos.envs[0].out_of_date;
             })
             .catch((err:AxiosError)=>{
               this.getUIContext().getPromptAction().showToast({ message: err.message })
             })
         })
+
+      Text('设备名称：'+this.rname);
+      Text('在线状态：'+this.out_of_date);
+      Text('电量：'+this.battery+'%');
+      Text('信号强度：'+this.rssi+'dBm');
+      Text('活动状态：'+this.value);
+      Text('更新时间：'+this.updateTime);
     }
     .height('100%')
     .width('100%')
