@@ -7,6 +7,7 @@
     "pages/MSPage",
     "pages/NetPage",
     "pages/SwitchPage",
-    "pages/WaterPage"
+    "pages/WaterPage",
+    "pages/DoorPage"
   ]
 }

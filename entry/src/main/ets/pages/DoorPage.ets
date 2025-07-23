@@ -10,12 +10,11 @@ interface IEEE {
 interface terminalDefId{
   ieee:string
   terminalDefId:string
-  no:boolean
 }
 @Entry
 @Component
 
-struct MSPage {
+struct DoorPage {
 
   @State rname: string = 'N/A';
   @State battery: string = 'N/A';
@@ -23,6 +22,10 @@ struct MSPage {
   @State value: string = 'N/A';
   @State updateTime: string = 'N/A';
   @State out_of_date: string = 'N/A';
+  @State door_propertie_name1:string ='N/A'
+  @State door_propertie_name2:string ='N/A'
+  @State door_propertie_value1:string ='N/A'
+  @State door_propertie_value2:string ='N/A'
 
   @State htime: string = 'N/A';
   @State hpast: string = 'N/A';
@@ -38,7 +41,7 @@ struct MSPage {
     let cookie = pref.getSync('cookie','') as string;
     // 省略4个参数 获取所有设备信息
     //传入IEEE 获取指定设备信息
-    axios.post(url, {ieee:'5c0272fffe8576cb'} as IEEE,{timeout:1000,headers:{'Content-Type':'application/json','cookie':cookie}})
+    axios.post(url, {ieee:'a46dd4fffeed971a'} as IEEE,{timeout:1000,headers:{'Content-Type':'application/json','cookie':cookie}})
       .then((resp:AxiosResponse)=>{
         console.log(JSON.stringify(resp));
         this.rname=resp.data.data.deviceInfos.envs[0].rname;
@@ -99,7 +102,7 @@ struct MSPage {
           let cookie = pref.getSync('cookie','') as string;
           // 省略4个参数 获取所有设备信息
           //传入IEEE 获取指定设备信息
-          axios.post(url, {ieee:'5c0272fffe8576cb'} as IEEE,{timeout:1000,headers:{'Content-Type':'application/json','cookie':cookie}})
+          axios.post(url, {ieee:'a46dd4fffeed971a'} as IEEE,{timeout:1000,headers:{'Content-Type':'application/json','cookie':cookie}})
             .then((resp:AxiosResponse)=>{
               console.log(JSON.stringify(resp));
               this.rname=resp.data.data.deviceInfos.envs[0].rname;
@@ -125,7 +128,7 @@ struct MSPage {
           let cookie = pref.getSync('cookie','') as string;
           // 省略4个参数 获取所有设备信息
           //传入IEEE 获取指定设备信息
-          axios.post(url, {ieee:'5c0272fffe8576cb',terminalDefId:'17674'} as terminalDefId,{timeout:1000,headers:{'Content-Type':'application/json','cookie':cookie}})
+          axios.post(url, {ieee:'a46dd4fffeed971a',terminalDefId:'17681'} as terminalDefId,{timeout:1000,headers:{'Content-Type':'application/json','cookie':cookie}})
             .then((resp:AxiosResponse)=>{
               console.log(JSON.stringify(resp.data.data));
               //console.log(resp.data.data.length);
