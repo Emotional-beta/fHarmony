@@ -47,7 +47,11 @@ struct MSPage {
         this.rssi=resp.data.data.deviceInfos.envs[0].rssi;
         this.value=resp.data.data.deviceInfos.envs[0].properties[0].value;
         this.updateTime=resp.data.data.deviceInfos.envs[0].updateTime;
-        this.out_of_date=resp.data.data.deviceInfos.envs[0].out_of_date;
+        if(!resp.data.data.deviceInfos.envs[0].out_of_date) {
+          this.out_of_date = '在线';
+        }else {
+          this.out_of_date = '离线';
+        }
       })
       .catch((err:AxiosError)=>{
         this.getUIContext().getPromptAction().showToast({ message: err.message })
@@ -93,7 +97,7 @@ struct MSPage {
       Button('更新当前设备信息')
         .width('61.8%')
         .onClick(()=>{
-          this.respdata=[];
+
           let url = 'http://192.168.100.1/api/room/allDevAndProcess';
           let pref=preferences.getPreferencesSync(getContext(),{name:'zbox.xml'});
           let cookie = pref.getSync('cookie','') as string;
@@ -108,7 +112,11 @@ struct MSPage {
               this.rssi=resp.data.data.deviceInfos.envs[0].rssi;
               this.value=resp.data.data.deviceInfos.envs[0].properties[0].value;
               this.updateTime=resp.data.data.deviceInfos.envs[0].updateTime;
-              this.out_of_date=resp.data.data.deviceInfos.envs[0].out_of_date;
+              if(!resp.data.data.deviceInfos.envs[0].out_of_date) {
+                this.out_of_date = '在线';
+              }else {
+                this.out_of_date = '离线';
+              }
               this.getUIContext().getPromptAction().showToast({ message: '更新成功'});
 
             })
@@ -142,11 +150,17 @@ struct MSPage {
                 //console.log('更新时间：' + this.hupdateTime);
                 this.respdata.push('past：' + this.hpast);
                 //console.log('past：' + this.hpast);;
-                this.respdata.push('活动状态：' + this.hvalue);
+                if(this.hvalue=='1'){
+                  this.respdata.push('活动状态：有活动' );
+                }else if(this.hvalue=='0'){
+                  this.respdata.push('活动状态：无活动' );
+                }else{
+                  this.respdata.push('活动状态：错误' );
+                }
                 //console.log('活动状态：' + this.hvalue);
                 this.respdata.push('在线状态：' + this.hout_of_date);
                 //console.log('在线状态：' + this.hout_of_date);
-                console.log(this.respdata[1]);
+                //console.log(this.respdata[1]);
               }
               this.getUIContext().getPromptAction().showToast({ message: '获取历史信息成功'});
 
