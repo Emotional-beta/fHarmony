@@ -118,19 +118,19 @@ struct RoomPage {
               .then((resp:AxiosResponse)=>{
                 console.log(JSON.stringify(resp.data.data));
                 //console.log(resp.data.data.length);
-                let roomindex:room = {
-                  type: this.typeindex,  // 使用枚举值
-                  name: this.name,
-                  create_datetime: "2023-11-15 14:30:00",
-                  id:'1',
-                  isDisp:'null',
-                  dispIndex:'-1'
-                };
+
                 for(let i =1;i<=resp.data.data.length;i++){
+                  let roomindex:room = {
+                    type: this.typeindex,  // 使用枚举值
+                    name: this.name,
+                    create_datetime: "2023-11-15 14:30:00",
+                    id:'1',
+                    isDisp:'null',
+                    dispIndex:'-1'
+                  };
                   roomindex.type=resp.data.data[i-1].type as type;
                   roomindex.name=resp.data.data[i-1].name;
                   roomindex.id=resp.data.data[i-1].id;
-                  roomindex.isDisp=resp.data.data[i-1].isDisp;
                   roomindex.dispIndex=resp.data.data[i-1].dispIndex
                   roomindex.create_datetime=resp.data.data[i-1].create_datetime;
 
@@ -153,32 +153,37 @@ struct RoomPage {
           //参数1 循环对象 参数2 循环体 e表示数组中每一个元素
           ForEach(this.respdata,(e:room)=>{
             ListItem() {
-              Row({space:10}){
-                Text('房间名：'+e.name)
-                  .fontSize(18)
-                Text('房间id：'+e.id)
-                  .fontSize(18)
-                if(e.type==0){
-                  Text('房间类型：家庭')
+              Scroll() {  // 添加横向滚动
+                Row({space:10}){
+                  Text('房间名：'+e.name)
                     .fontSize(18)
-                }else if(e.type==1){
-                  Text('房间类型：学校')
+                  Text('房间id：'+e.id)
                     .fontSize(18)
-                }else if(e.type==2){
-                  Text('房间类型：公司')
+                  if(e.type==0){
+                    Text('房间类型：家庭')
+                      .fontSize(18)
+                  }else if(e.type==1){
+                    Text('房间类型：学校')
+                      .fontSize(18)
+                  }else if(e.type==2){
+                    Text('房间类型：公司')
+                      .fontSize(18)
+                  }else{
+                    Text('房间类型错误')
+                      .fontSize(18)
+                  }
+                  Text('创建时间：'+e.create_datetime)
                     .fontSize(18)
-                }else{
-                  Text('房间类型错误')
-                    .fontSize(18)
-                }
-                Text('创建时间：'+e.create_datetime)
-                  .fontSize(18)
-                Button('修改房间')
-                  .width('61.8%')
-                Button('删除房间')
-                  .width('61.8%')
+                  Button('修改房间')
+                    .width('61.8%')
+                  Button('删除房间')
+                    .width('61.8%')
 
+                }
               }
+              .scrollable(ScrollDirection.Horizontal) // 设置为横向滚动
+              .scrollBar(BarState.On)               // 显示滚动条
+              
             }
 
           })
