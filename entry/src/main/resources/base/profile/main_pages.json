@@ -1,5 +1,12 @@
 {
   "src": [
-
+    "pages/LoginPage",
+    "pages/MainPage",
+    "pages/ListPage",
+    "pages/PrefPage",
+    "pages/MSPage",
+    "pages/NetPage",
+    "pages/SwitchPage",
+    "pages/WaterPage"
   ]
 }

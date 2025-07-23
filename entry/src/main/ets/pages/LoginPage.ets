@@ -1,9 +1,8 @@
-
 import axios, { AxiosError, AxiosResponse, AxiosResponseTransformer } from '@ohos/axios';
 import CryptoJS from '@ohos/crypto-js'
 import { preferences } from '@kit.ArkData';
 interface LoginUser {
-  username:string,
+  username:string ,
   password:string
 }@Entry
 @Component
@@ -13,9 +12,9 @@ struct LoginPage {
   //@state 状态变量 如果状态值改变会自动刷新UI
   //$$变量名 UI组件导致值的更新，会同步到普通变量
 
-  @State username:string='';
-  @State password:string='';
-  @State agree:boolean=false;
+  @State username:string='admin';
+  @State password:string='a';
+  @State agree:boolean=true;
   is_password_correct:string='';
 
   build() {
@@ -28,10 +27,11 @@ struct LoginPage {
 
       TextInput({placeholder:'用户名',text:$$this.username})//默认值：text:‘内容’
         .width('61.8%')
-
+        .backgroundColor(Color.White)
 
       TextInput({placeholder:'密码',text:$$this.password})//默认值：text:‘内容’
         .width('61.8%')
+        .backgroundColor(Color.White)
         .type(InputType.Password)
 
       Row({space:5}){
@@ -46,7 +46,6 @@ struct LoginPage {
 
       Button('登录')
         .width('61.8%')
-
         .onClick(()=>{
             if(this.username == null || this.username.trim().length == 0){
               this.getUIContext().getPromptAction().showToast({message:'请输入用户名',duration:2000})
@@ -90,16 +89,15 @@ struct LoginPage {
                  .catch((err:AxiosError)=>{
                    this.getUIContext().getPromptAction().showToast({message:err.message});
                  })
-
-
           }
         })
 
     }
-    //.backgroundImage($r('app.media.login'))//图片命名符合规范,用变量命名方式，小写
-    //.backgroundImageSize(ImageSize.FILL)//填充
-    //.expandSafeArea([SafeAreaType.SYSTEM])
+    .backgroundImage($r('app.media.login'))//图片命名符合规范,用变量命名方式，小写
+    .backgroundImageSize(ImageSize.FILL)//填充
+    .expandSafeArea([SafeAreaType.SYSTEM])
     .height('100%')
     .width('100%')
   }
+
 }
