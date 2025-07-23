@@ -27,7 +27,7 @@ struct SocketPage {
         Column() {
           // 设备名称行
           Row() {
-            Image($r('app.media.socket_switch')) // 设备图标
+            Image($r('app.media.socket_switch'))
               .width(24)
               .height(24)
               .margin({ right: 12 })
@@ -45,7 +45,7 @@ struct SocketPage {
 
           // 状态行
           Row() {
-            Image($r('app.media.socket_switch_on')) // 状态图标
+            Image($r('app.media.socket_switch_on'))
               .width(24)
               .height(24)
               .margin({ right: 12 })
@@ -61,7 +61,7 @@ struct SocketPage {
           //.margin({ vertical: 5 })
 
           Row() {
-            Image($r('app.media.socket_switch_on')) // 状态图标
+            Image($r('app.media.socket_switch_on'))
               .width(24)
               .height(24)
               .margin({ right: 12 })
@@ -79,7 +79,7 @@ struct SocketPage {
 
           // 电量行
           Row() {
-            Image($r('app.media.battery')) // 电池图标
+            Image($r('app.media.battery'))
               .width(24)
               .height(24)
               .margin({ right: 12 })
@@ -96,7 +96,7 @@ struct SocketPage {
 
           // 信号强度行
           Row() {
-            Image($r('app.media.signal')) // 信号图标
+            Image($r('app.media.signal'))
               .width(24)
               .height(24)
               .margin({ right: 12 })
@@ -113,7 +113,7 @@ struct SocketPage {
 
           // 更新时间行
           Row() {
-            Image($r('app.media.clock')) // 时间图标
+            Image($r('app.media.clock'))
               .width(24)
               .height(24)
               .margin({ right: 12 })
@@ -165,9 +165,9 @@ struct SocketPage {
               })
           })
       }
-      .backgroundImage($r('app.media.background2')) // 背景
-      .backgroundImageSize(ImageSize.FILL) // 填充
-      .expandSafeArea([SafeAreaType.SYSTEM]) // 扩展到安全区域
+      .backgroundImage($r('app.media.background2'))
+      .backgroundImageSize(ImageSize.FILL)  
+      .expandSafeArea([SafeAreaType.SYSTEM])
       .height('100%')
       .width('100%')
     }

@@ -18,7 +18,7 @@ struct SocketPage {
   @State updateTime: string = 'N/A';
   @State properties: string = 'N/A';
   @State rname: string = 'N/A';
-  // +++ 新增aboutToAppear生命周期函数 +++
+  //  新增aboutToAppear生命周期函数
   aboutToAppear() {
     let url = 'http://192.168.100.1/api/room/allDevAndProcess';
     let pref = preferences.getPreferencesSync(getContext(), { name: 'zbox.xml' });
@@ -46,7 +46,7 @@ struct SocketPage {
         this.getUIContext().getPromptAction().showToast({ message: "初始化异常" + err.message })
       });
   }
-  // +++ 新增结束 +++
+
   build() {
     Column({ space: 20 }) {
       Column({ space: 20 }) {
@@ -162,7 +162,7 @@ struct SocketPage {
                 console.log(JSON.stringify(resp));
                 if (resp.data.code === '0000000') {
                   const envs: SockDevice = resp.data.data.deviceInfos.envs[2];
-                  this.properties = resp.data.data.deviceInfos.envs[2].properties[0].value; //这个地方记得改一下
+                  this.properties = resp.data.data.deviceInfos.envs[2].properties[0].value;
                   this.rname = envs.rname;
                   this.battery = envs.battery;
                   this.rssi = envs.rssi;
