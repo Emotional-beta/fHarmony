@@ -250,21 +250,29 @@ struct MainPage {
         Text('各个房间').fontSize(20)
       }
       .tabBar('房间')
+      .onClick(()=>{
+        this.getUIContext().getRouter().pushUrl({ url: 'pages/RoomPage' });})
 
       TabContent(){
         Text('扩展内容').fontSize(20)
       }
       .tabBar('发现')
+      .onClick(()=>{
+        this.getUIContext().getRouter().pushUrl({ url: 'pages/DiscoverPage' });})
 
       TabContent(){
-        Text('各个场景').fontSize(20)
+        Text('各个情景').fontSize(20)
       }
-      .tabBar('场景')
+      .tabBar('情景')
+      .onClick(()=>{
+        this.getUIContext().getRouter().pushUrl({ url: 'pages/ScenePage' });})
 
       TabContent(){
-
       }
       .tabBar('我的')
+      .onClick(()=>{
+        this.getUIContext().getRouter().pushUrl({ url: 'pages/MinePage' });
+      })
     }
   }
 

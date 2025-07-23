@@ -7,4 +7,7 @@
 6.      标准温湿度传感器 TempHumPage     潘琦
 7.       标准门磁传感器  DoorPage    刘鹤群
 8.        各个界面美化           刘硕
-9. 
+9.   房间： RoomPage
+10.  情景   ScenePage
+11. 发现 DiscoverPage
+12. 我的  MinePage

@@ -7,6 +7,10 @@
     "pages/MSPage",
     "pages/SwitchPage",
     "pages/WaterPage",
-    "pages/DoorPage"
+    "pages/DoorPage",
+    "pages/MinePage",
+    "pages/RoomPage",
+    "pages/ScenePage",
+    "pages/DiscoverPage"
   ]
 }
