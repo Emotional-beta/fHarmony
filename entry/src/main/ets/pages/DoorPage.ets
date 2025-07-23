@@ -10,12 +10,11 @@ interface IEEE {
 interface terminalDefId{
   ieee:string
   terminalDefId:string
-  no:boolean
 }
 @Entry
 @Component
 
-struct MSPage {
+struct DoorPage {
 
   @State rname: string = 'N/A';
   @State battery: string = 'N/A';
@@ -23,6 +22,12 @@ struct MSPage {
   @State value: string = 'N/A';
   @State updateTime: string = 'N/A';
   @State out_of_date: string = 'N/A';
+  @State door_propertie_name1:string ='N/A'
+  @State door_propertie_name2:string ='N/A'
+  @State door_propertie_value1:string ='N/A'
+  @State door_propertie_value2:string ='N/A'
+  @State door_propertie_time1:string ='N/A'
+  @State door_propertie_time2:string ='N/A'
 
   @State htime: string = 'N/A';
   @State hpast: string = 'N/A';
@@ -38,14 +43,19 @@ struct MSPage {
     let cookie = pref.getSync('cookie','') as string;
     // 省略4个参数 获取所有设备信息
     //传入IEEE 获取指定设备信息
-    axios.post(url, {ieee:'5c0272fffe8576cb'} as IEEE,{timeout:1000,headers:{'Content-Type':'application/json','cookie':cookie}})
+    axios.post(url, {ieee:'a46dd4fffeed971a'} as IEEE,{timeout:1000,headers:{'Content-Type':'application/json','cookie':cookie}})
       .then((resp:AxiosResponse)=>{
         console.log(JSON.stringify(resp));
         this.rname=resp.data.data.deviceInfos.envs[0].rname;
         //this.getUIContext().getPromptAction().showToast({ message: JSON.stringify(resp)});
         this.battery=resp.data.data.deviceInfos.envs[0].battery;
         this.rssi=resp.data.data.deviceInfos.envs[0].rssi;
-        this.value=resp.data.data.deviceInfos.envs[0].properties[0].value;
+        this.door_propertie_name1=resp.data.data.deviceInfos.envs[0].properties[0].name;
+        this.door_propertie_value1=resp.data.data.deviceInfos.envs[0].properties[0].value;
+        this.door_propertie_name2=resp.data.data.deviceInfos.envs[0].properties[1].name;
+        this.door_propertie_value2=resp.data.data.deviceInfos.envs[0].properties[1].value;
+        this.door_propertie_time1=resp.data.data.deviceInfos.envs[0].properties[0].update_datetime;
+        this.door_propertie_time2=resp.data.data.deviceInfos.envs[0].properties[1].update_datetime;
         this.updateTime=resp.data.data.deviceInfos.envs[0].updateTime;
         if(!resp.data.data.deviceInfos.envs[0].out_of_date) {
           this.out_of_date = '在线';
@@ -84,12 +94,23 @@ struct MSPage {
         }
 
         ListItem() {
-          Text('活动状态：' + this.value)
+          Text('更新时间：' + this.updateTime)
             .fontSize(24)
         }
-
         ListItem() {
-          Text('更新时间：' + this.updateTime)
+          Text( this.door_propertie_name1+':'+this.door_propertie_value1)
+            .fontSize(24)
+        }
+        ListItem() {
+          Text('更新时间：' + this.door_propertie_time1)
+            .fontSize(24)
+        }
+        ListItem() {
+          Text( this.door_propertie_name2+':'+this.door_propertie_value2)
+            .fontSize(24)
+        }
+        ListItem() {
+          Text('更新时间：' + this.door_propertie_time2)
             .fontSize(24)
         }
       }.divider({strokeWidth:1})
@@ -103,14 +124,19 @@ struct MSPage {
           let cookie = pref.getSync('cookie','') as string;
           // 省略4个参数 获取所有设备信息
           //传入IEEE 获取指定设备信息
-          axios.post(url, {ieee:'5c0272fffe8576cb'} as IEEE,{timeout:1000,headers:{'Content-Type':'application/json','cookie':cookie}})
+          axios.post(url, {ieee:'a46dd4fffeed971a'} as IEEE,{timeout:1000,headers:{'Content-Type':'application/json','cookie':cookie}})
             .then((resp:AxiosResponse)=>{
               console.log(JSON.stringify(resp));
               this.rname=resp.data.data.deviceInfos.envs[0].rname;
-
+              //this.getUIContext().getPromptAction().showToast({ message: JSON.stringify(resp)});
               this.battery=resp.data.data.deviceInfos.envs[0].battery;
               this.rssi=resp.data.data.deviceInfos.envs[0].rssi;
-              this.value=resp.data.data.deviceInfos.envs[0].properties[0].value;
+              this.door_propertie_name1=resp.data.data.deviceInfos.envs[0].properties[0].name;
+              this.door_propertie_value1=resp.data.data.deviceInfos.envs[0].properties[0].value;
+              this.door_propertie_name2=resp.data.data.deviceInfos.envs[0].properties[1].name;
+              this.door_propertie_value2=resp.data.data.deviceInfos.envs[0].properties[1].value;
+              this.door_propertie_time1=resp.data.data.deviceInfos.envs[0].properties[0].update_datetime;
+              this.door_propertie_time2=resp.data.data.deviceInfos.envs[0].properties[1].update_datetime;
               this.updateTime=resp.data.data.deviceInfos.envs[0].updateTime;
               if(!resp.data.data.deviceInfos.envs[0].out_of_date) {
                 this.out_of_date = '在线';
@@ -133,7 +159,7 @@ struct MSPage {
           let cookie = pref.getSync('cookie','') as string;
           // 省略4个参数 获取所有设备信息
           //传入IEEE 获取指定设备信息
-          axios.post(url, {ieee:'5c0272fffe8576cb',terminalDefId:'17674'} as terminalDefId,{timeout:1000,headers:{'Content-Type':'application/json','cookie':cookie}})
+          axios.post(url, {ieee:'a46dd4fffeed971a',terminalDefId:'17681'} as terminalDefId,{timeout:1000,headers:{'Content-Type':'application/json','cookie':cookie}})
             .then((resp:AxiosResponse)=>{
               console.log(JSON.stringify(resp.data.data));
               //console.log(resp.data.data.length);
@@ -151,11 +177,11 @@ struct MSPage {
                 this.respdata.push('past：' + this.hpast);
                 //console.log('past：' + this.hpast);;
                 if(this.hvalue=='1'){
-                  this.respdata.push('活动状态：有活动' );
+                  this.respdata.push('门磁状态：开启' );
                 }else if(this.hvalue=='0'){
-                  this.respdata.push('活动状态：无活动' );
+                  this.respdata.push('门磁状态：关闭' );
                 }else{
-                  this.respdata.push('活动状态：错误' );
+                  this.respdata.push('门磁状态：错误' );
                 }
                 //console.log('活动状态：' + this.hvalue);
                 this.respdata.push('在线状态：' + this.hout_of_date);

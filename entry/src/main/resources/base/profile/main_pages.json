@@ -7,7 +7,6 @@
     "pages/MSPage",
     "pages/SwitchPage",
     "pages/WaterPage",
-    "pages/SOSPage",
-    "pages/TempHumPage"
+    "pages/DoorPage"
   ]
 }

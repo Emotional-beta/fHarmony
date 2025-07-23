@@ -5,6 +5,6 @@
 4.        标准人体活动传感器    MSPage        刘鹤群
 5.     标准水浸传感器  WaterPage         赵宣榜
 6.      标准温湿度传感器 TempHumPage     潘琦
-7.       标准门磁传感器  DoorPage    潘琦
+7.       标准门磁传感器  DoorPage    刘鹤群
 8.        各个界面美化           刘硕
 9. 
