@@ -5,12 +5,14 @@ struct SwitchPage {
   @State powerConsumption: number = 0; // 当前功耗（瓦特）
   @State totalEnergy: number = 0;     // 总耗电量（瓦时）
   private timer: number = 0;          // 定时器ID
+  build() {
 
+  }
   // 新增代码开始 - 添加HTTP请求能力
   @State isRequesting: boolean = false; // 防止重复点击
   private ieee: string = '1c1cfd001dba1a63'; // 插座IEEE地址
   private apiUrl: string = 'http://192.168.100.1/api/terminal/zigbee/sock/ctrl';
-
+/*
   // 封装HTTP请求
   private async httpRequest(data: object): Promise<any> {
     try {
@@ -157,3 +159,4 @@ struct SwitchPage {
     .width('100%')
   }
 }
+*/}
