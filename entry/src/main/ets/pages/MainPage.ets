@@ -233,7 +233,6 @@ struct MainPage {
                 })
               }
             })
-
           }
           .height('100%')
           .width('100%')
@@ -241,11 +240,14 @@ struct MainPage {
           .columnsTemplate('1fr')       // 1列
           .columnsGap(20)                   // 列间距
           .rowsGap(10)                      // 行间距
+          .opacity(0.95)
         }
 
       }
       .tabBar('设备')
-
+      .backgroundImage($r('app.media.main'))//图片命名符合规范,用变量命名方式，小写
+      .backgroundImageSize(ImageSize.FILL)//填充
+      .expandSafeArea([SafeAreaType.SYSTEM])
       TabContent(){
         Text('各个房间').fontSize(20)
       }
@@ -275,5 +277,4 @@ struct MainPage {
       })
     }
   }
-
 }

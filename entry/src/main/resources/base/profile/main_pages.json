@@ -8,9 +8,12 @@
     "pages/SwitchPage",
     "pages/WaterPage",
     "pages/DoorPage",
-
-    "pages/RoomPage"
-
+    "pages/MinePage",
+    "pages/RoomPage",
+    "pages/ScenePage",
+    "pages/SOSPage",
+    "pages/TempHumPage",
+    "pages/DiscoverPage"
 
   ]
 }
