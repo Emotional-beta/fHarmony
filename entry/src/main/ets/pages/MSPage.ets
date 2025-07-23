@@ -118,6 +118,7 @@ struct MSPage {
       Button('获取历史信息')
         .width('61.8%')
         .onClick(()=>{
+          this.respdata=[]
           let url = 'http://192.168.100.1/api/terminal/history/get';
           let pref=preferences.getPreferencesSync(getContext(),{name:'zbox.xml'});
           let cookie = pref.getSync('cookie','') as string;
