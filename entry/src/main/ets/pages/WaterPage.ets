@@ -29,7 +29,7 @@ struct SocketPage {
         'Content-Type': 'application/json',
         'cookie': cookie
       },
-      timeout: 100
+      timeout: 1000
     })
       .then((resp: AxiosResponse) => {
         console.log(JSON.stringify(resp));
@@ -156,7 +156,7 @@ struct SocketPage {
                 'Content-Type': 'application/json',
                 'cookie': cookie
               },
-              timeout: 100
+              timeout: 1000
             })
               .then((resp: AxiosResponse) => {
                 console.log(JSON.stringify(resp));
