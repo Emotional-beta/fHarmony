@@ -147,7 +147,7 @@ struct SocketPage {
               })
           })
       }
-      .backgroundImage($r('app.media.waterbackground')) 
+      .backgroundImage($r("app.media.background2"))
       .backgroundImageSize(ImageSize.FILL)
       .expandSafeArea([SafeAreaType.SYSTEM])
       .height('100%')

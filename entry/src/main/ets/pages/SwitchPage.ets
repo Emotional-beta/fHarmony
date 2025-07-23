@@ -1,172 +1,174 @@
-import axios, { AxiosError, AxiosResponse } from '@ohos/axios';
-import { preferences } from '@kit.ArkData';
-
-// 接口定义保持不变
-interface RequestParams {
-  ieee: string;
-  shortAddr: string;
-}
-
-interface DeviceInfo {
-  socks: SockDevice[];
-}
-
-interface ResponseData {
-  deviceInfos: DeviceInfo;
-}
-
-interface ApiResponse {
-  code: string;
-  data: ResponseData;
-}
-
-interface DeviceIdentifier {
-  ieee: string;
-  shortAddr: string;
-}
-
-interface ControlSocketRequest {
-  status: 'ON' | 'OFF';
-  ieee: string;
-  shortAddr: string;
-}
+import axios, { AxiosError, AxiosResponse } from '@ohos/axios'
+import { preferences } from '@kit.ArkData'
 
 interface SockDevice {
   status: string;
   power: string;
-  ieee: string;
-  shortAddr: string;
+  battery: string;
+  rssi: string;
+  updateTime: string;
 }
 
 @Entry
 @Component
-struct SwitchPage {
-  @State img: Resource = $r('app.media.socket_switch_off');
-  @State powerConsumption: number = 0;
-  @State isOn: boolean = false;
 
-  // +++ 明确初始化设备信息（实际连接的目标设备）
-  private readonly deviceInfo: DeviceIdentifier = {
-    ieee: '1c1cfd001dba1a63',  // 目标设备IEEE
-    shortAddr: '3f15'           // 目标设备短地址
-  };
+struct SocketPage {
+  @State status: string = 'N/A';
+  @State power: string = 'N/A';
+  @State battery	: string = 'N/A';
+  @State rssi: string = 'N/A';
+  @State updateTime: string = 'N/A';
 
-  private updateSocketState(newStatus: boolean) {
-    this.isOn = newStatus;
-    this.img = newStatus ? $r('app.media.socket_switch_on') : $r('app.media.socket_switch_off');
-    this.powerConsumption = newStatus ? 220 : 0;
-  }
-
-  private fetchDeviceData() {
-    let url = 'http://192.168.100.1/api/terminal/zigbee/sock/ctrl';
-    let pref = preferences.getPreferencesSync(getContext(), { name: 'zbox.xml' });
-    let cookie = pref.getSync('cookie', '') as string;
-
-    // +++ 确保请求参数使用当前设备信息
-    const params: RequestParams = {
-      ieee: this.deviceInfo.ieee,
-      shortAddr: this.deviceInfo.shortAddr
-    };
-
-    axios.get<ApiResponse>(url, {
-      params: params,
-      headers: {
-        'Content-Type': 'application/json',
-        'cookie': cookie
-      },
-      timeout: 1000
-    })
-      .then((resp: AxiosResponse<ApiResponse>) => {
-        if (resp.data.code === '0000000') {
-          const devices = resp.data.data.deviceInfos.socks;
-          // +++ 精确匹配目标设备
-          const targetDevice = devices.find((d: SockDevice) =>
-          d.ieee === this.deviceInfo.ieee &&
-            d.shortAddr === this.deviceInfo.shortAddr);
-
-          if (targetDevice) {
-            this.updateSocketState(targetDevice.status === 'ON');
-          }
-        }
-      })
-      .catch((err: AxiosError) => {
-        console.error("状态获取失败:", err.message);
-      });
-  }
-
-  private toggleSocket() {
-    const newStatus = !this.isOn;
-    this.updateSocketState(newStatus);
-
-    // +++ 控制请求使用当前设备信息
-    const requestData: ControlSocketRequest = {
-      status: newStatus ? 'ON' : 'OFF',
-      ieee: this.deviceInfo.ieee,
-      shortAddr: this.deviceInfo.shortAddr
-    };
-
-    let url = 'http://192.168.100.1/api/terminal/zigbee/sock/ctrl';
-    let pref = preferences.getPreferencesSync(getContext(), { name: 'zbox.xml' });
-    let cookie = pref.getSync('cookie', '') as string;
-
-    axios.post(url, requestData, {
-      headers: {
-        'Content-Type': 'application/json',
-        'cookie': cookie
-      },
-      timeout: 1000
-    }).catch((err: AxiosError) => {
-      this.updateSocketState(!newStatus);
-      console.error("状态切换失败:", err.message);
-      this.getUIContext().getPromptAction().showToast({
-        message: "控制失败: " + err.message
-      });
-    });
-  }
 
   build() {
-    Flex({ justifyContent: FlexAlign.Center, alignItems: ItemAlign.Center }) {
-      Column({ space: 10 }) {
-        Image(this.img)
-          .width(200)
-          .onClick(() => this.toggleSocket())
-
-        Text(this.isOn ? '开' : '关')
-          .fontSize(30)
-          .fontColor(this.isOn ? Color.Green : Color.Red)
-
+    Column({ space: 20 }) {
+      Column({ space: 20 }) {
+        // 白色卡片容器
         Column() {
-          Text(`IEEE: ${this.deviceInfo.ieee}`)
-            .fontSize(14)
-            .fontColor(Color.Blue)
-          Text(`短地址: ${this.deviceInfo.shortAddr}`)
-            .fontSize(14)
-            .fontColor(Color.Blue)
-        }
-        .margin({ top: 10 })
+          // 设备名称行
+          Row() {
+            Image($r('app.media.socket_switch')) // 设备图标
+              .width(24)
+              .height(24)
+              .margin({ right: 12 })
+            Text('智能插座' )
+              .fontSize(18)
+          }
+          .padding(10)
+          .width('100%')
 
-        Button('刷新状态')
-          .width('60%')
-          .margin({ top: 20 })
-          .onClick(() => this.fetchDeviceData())
+          // 灰色分割线
+          Divider()
+            .strokeWidth(1)
+            .color(Color.Gray)
+          //.margin({ vertical: 5 })
 
-        Row() {
-          Text('当前功率:')
-            .fontSize(18)
-            .fontColor(Color.Black)
-          Text(`${this.powerConsumption} W`)
-            .fontSize(18)
-            .fontColor(this.isOn ? Color.Red : Color.Blue)
+          // 状态行
+          Row() {
+            Image($r('app.media.socket_switch_on')) // 状态图标
+              .width(24)
+              .height(24)
+              .margin({ right: 12 })
+            Text('插座开关状态: ' + this.status)
+              .fontSize(18)
+          }
+          .padding(10)
+          .width('100%')
+
+          Divider()
+            .strokeWidth(1)
+            .color(Color.Gray)
+          //.margin({ vertical: 5 })
+
+          Row() {
+            Image($r('app.media.socket_switch_on')) // 状态图标
+              .width(24)
+              .height(24)
+              .margin({ right: 12 })
+            Text('功率: ' + this.power)
+              .fontSize(18)
+          }
+          .padding(10)
+          .width('100%')
+
+          Divider()
+            .strokeWidth(1)
+            .color(Color.Gray)
+          //.margin({ vertical: 5 })
+
+
+          // 电量行
+          Row() {
+            Image($r('app.media.battery')) // 电池图标
+              .width(24)
+              .height(24)
+              .margin({ right: 12 })
+            Text('电量: ' + this.battery)
+              .fontSize(18)
+          }
+          .padding(10)
+          .width('100%')
+
+          Divider()
+            .strokeWidth(1)
+            .color(Color.Gray)
+          //.margin({ vertical: 5 })
+
+          // 信号强度行
+          Row() {
+            Image($r('app.media.signal')) // 信号图标
+              .width(24)
+              .height(24)
+              .margin({ right: 12 })
+            Text('信号强度: ' + this.rssi)
+              .fontSize(18)
+          }
+          .padding(10)
+          .width('100%')
+
+          Divider()
+            .strokeWidth(1)
+            .color(Color.Gray)
+          //.margin({ vertical: 5 })
+
+          // 更新时间行
+          Row() {
+            Image($r('app.media.clock')) // 时间图标
+              .width(24)
+              .height(24)
+              .margin({ right: 12 })
+            Text('最新时间: ' + this.updateTime)
+              .fontSize(18)
+          }
+          .padding(10)
+          .width('100%')
         }
-        .margin({ top: 20 })
+        .width('90%')
+        .backgroundColor(Color.White)
+        .borderRadius(16)
+        .shadow({
+          radius: 8,
+          color: Color.Gray,
+          offsetX: 2,
+          offsetY: 2
+        })
+        .margin({ top: 30 })
+
+        Button('更新设备信息')
+          .width('80%')
+          .onClick(() => {
+            let url = 'http://192.168.100.1/api/room/allDevAndProcess'
+            let pref = preferences.getPreferencesSync(getContext(), { name: 'zbox.xml' });
+            let cookie = pref.getSync('cookie', '') as string;
+            // 参数2,没有,所有设备信息, 有, ieee
+            axios.post(url, null, {
+              headers: {
+                'Content-Type': 'application/json',
+                'cookie': cookie // 登陆状态保持
+              },
+              timeout: 1000
+            })
+              .then((resp: AxiosResponse) => {
+                console.log(JSON.stringify(resp));
+                if (resp.data.code === '0000000') {
+                  const socks : SockDevice  = resp.data.data.deviceInfos.socks[0];
+                  this.status = socks.status;
+                  this.power = socks.power;
+                  this.battery = socks.battery;
+                  this.rssi = socks.rssi;
+                  this.updateTime = socks.updateTime;
+                }
+
+              })
+              .catch((err: AxiosError) => {
+                this.getUIContext().getPromptAction().showToast({ message: "异常" + err.message })
+              })
+          })
       }
+      .backgroundImage($r('app.media.background2')) // 背景
+      .backgroundImageSize(ImageSize.FILL) // 填充
+      .expandSafeArea([SafeAreaType.SYSTEM]) // 扩展到安全区域
+      .height('100%')
+      .width('100%')
     }
-    .width('100%')
-    .height('100%')
-    .backgroundColor(this.isOn ? 0xFFFFFF : 0xEAEAEA)
-  }
-
-  aboutToAppear() {
-    this.fetchDeviceData();
-  }
-}
+  }}
