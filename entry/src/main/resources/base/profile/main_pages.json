@@ -11,6 +11,9 @@
     "pages/MinePage",
     "pages/RoomPage",
     "pages/ScenePage",
+    "pages/SOSPage",
+    "pages/TempHumPage",
     "pages/DiscoverPage"
+
   ]
 }

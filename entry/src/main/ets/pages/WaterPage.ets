@@ -18,6 +18,34 @@ struct SocketPage {
   @State updateTime: string = 'N/A';
   @State properties: string = 'N/A';
   @State rname: string = 'N/A';
+  //  新增aboutToAppear生命周期函数
+  aboutToAppear() {
+    let url = 'http://192.168.100.1/api/room/allDevAndProcess';
+    let pref = preferences.getPreferencesSync(getContext(), { name: 'zbox.xml' });
+    let cookie = pref.getSync('cookie', '') as string;
+
+    axios.post(url, null, {
+      headers: {
+        'Content-Type': 'application/json',
+        'cookie': cookie
+      },
+      timeout: 1000
+    })
+      .then((resp: AxiosResponse) => {
+        console.log(JSON.stringify(resp));
+        if (resp.data.code === '0000000') {
+          const envs: SockDevice = resp.data.data.deviceInfos.envs[2];
+          this.properties = resp.data.data.deviceInfos.envs[2].properties[0].value;
+          this.rname = envs.rname;
+          this.battery = envs.battery;
+          this.rssi = envs.rssi;
+          this.updateTime = envs.updateTime;
+        }
+      })
+      .catch((err: AxiosError) => {
+        this.getUIContext().getPromptAction().showToast({ message: "初始化异常" + err.message })
+      });
+  }
 
   build() {
     Column({ space: 20 }) {
@@ -134,7 +162,7 @@ struct SocketPage {
                 console.log(JSON.stringify(resp));
                 if (resp.data.code === '0000000') {
                   const envs: SockDevice = resp.data.data.deviceInfos.envs[2];
-                  this.properties = resp.data.data.deviceInfos.envs[2].properties[0].value; //这个地方记得改一下
+                  this.properties = resp.data.data.deviceInfos.envs[2].properties[0].value;
                   this.rname = envs.rname;
                   this.battery = envs.battery;
                   this.rssi = envs.rssi;
@@ -147,7 +175,7 @@ struct SocketPage {
               })
           })
       }
-      .backgroundImage($r('app.media.waterbackground')) 
+      .backgroundImage($r("app.media.background2"))
       .backgroundImageSize(ImageSize.FILL)
       .expandSafeArea([SafeAreaType.SYSTEM])
       .height('100%')
