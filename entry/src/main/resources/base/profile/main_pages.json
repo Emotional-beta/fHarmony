@@ -14,5 +14,6 @@
     "pages/SOSPage",
     "pages/TempHumPage",
     "pages/DiscoverPage"
+
   ]
 }
