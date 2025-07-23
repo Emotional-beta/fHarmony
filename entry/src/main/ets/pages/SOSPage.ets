@@ -3,7 +3,7 @@ import { preferences } from '@kit.ArkData';
 import promptAction from '@ohos.promptAction';
 
 
-// --------------- 新增：紧急呼叫相关类型定义 ---------------
+// --------------- 紧急呼叫相关类型定义 ---------------
 interface EmergencyCallRequest {
   ieee: string; // 设备标识，复用现有设备IEEE
   reason?: string; // 可选：紧急原因描述
@@ -15,7 +15,7 @@ interface EmergencyCallResponse {
 }
 
 
-// --------------- 原有类型定义（保持不变） ---------------
+// --------------- 原有类型定义 ---------------
 interface HistoryRequest {
   ieee: string;
   terminalDefId: string;
@@ -97,7 +97,7 @@ interface SOSDeviceState {
 }
 
 
-// --------------- 组件定义（新增紧急呼叫功能） ---------------
+// --------------- 组件定义 ---------------
 @Entry
 @Component
 struct SOSPage {
@@ -110,12 +110,45 @@ struct SOSPage {
     alarmStatus: '未知',
     updateDatetime: '无数据'
   };
-  // 新增：紧急呼叫状态管理
   @State isCalling: boolean = false; // 紧急呼叫加载状态
-  private readonly deviceIeee: string = 'cc86ecfffe5ac492'; // 复用设备IEEE标识
+  private deviceIeee: string = 'cc86ecfffe5ac492'; // 设备IEEE标识
+  private refreshTimer: number = -1; // 定时器ID
 
 
-  // 原有：获取设备信息
+  // 生命周期：页面显示时启动定时器
+  onPageShow() {
+    // 立即刷新一次
+    this.refreshAllData();
+
+    // 启动定时器，每5秒刷新一次
+    this.refreshTimer = setInterval(() => {
+      this.refreshAllData();
+    }, 10000);
+  }
+
+  // 生命周期：页面隐藏时清除定时器
+  onPageHide() {
+    if (this.refreshTimer !== -1) {
+      clearInterval(this.refreshTimer);
+      this.refreshTimer = -1;
+    }
+  }
+
+  // 统一刷新数据方法
+  private refreshAllData() {
+    // 显示刷新提示
+    promptAction.showToast({
+      message: '正在刷新SOS信息...',
+      duration: 1000
+    });
+
+    // 刷新设备信息和历史记录
+    this.getDeviceInfo();
+    this.getSOSHistory();
+  }
+
+
+  // 获取设备信息
   getDeviceInfo() {
     const url = 'http://192.168.100.1/api/room/allDevAndProcess';
     this.isLoading = true;
@@ -152,7 +185,6 @@ struct SOSPage {
                 this.sosInfo.alarmStatus = alarmProp.value;
                 this.sosInfo.updateDatetime = alarmProp.update_datetime;
               }
-              promptAction.showToast({ message: '获取SOS设备信息成功' });
             } else {
               promptAction.showToast({ message: '未找到标准SOS设备' });
             }
@@ -181,7 +213,7 @@ struct SOSPage {
   }
 
 
-  // 原有：获取历史记录
+  // 获取历史记录
   getSOSHistory() {
     const url = 'http://192.168.100.1/api/terminal/history/get';
     this.isLoading = true;
@@ -206,16 +238,13 @@ struct SOSPage {
           console.log('SOS历史信息请求成功: ' + JSON.stringify(resp.data));
           if (resp.data.code === '0000000') {
             this.historyList = resp.data.data;
-            promptAction.showToast({
-              message: `获取成功，共${resp.data.data.length}条记录`
-            });
           } else {
-            promptAction.showToast({ message: '获取数据失败: 接口返回错误' });
+            promptAction.showToast({ message: '获取历史数据失败: 接口返回错误' });
           }
           this.isLoading = false;
         })
         .catch((err: AxiosError) => {
-          let errorMsg = '请求失败: ';
+          let errorMsg = '历史记录请求失败: ';
           if (err.response) {
             errorMsg += `状态码: ${err.response.status}, 信息: ${err.message}`;
           } else {
@@ -234,7 +263,7 @@ struct SOSPage {
   }
 
 
-  // 新增：紧急呼叫功能
+  // 紧急呼叫功能
   emergencyCall() {
     if (this.isCalling) return; // 防止重复点击
     this.isCalling = true;
@@ -304,7 +333,7 @@ struct SOSPage {
 
   build() {
     Column() {
-      // 新增：紧急呼叫按钮（视觉突出）
+      // 紧急呼叫按钮
       Button(this.isCalling ? '正在呼叫...' : '紧急呼叫')
         .onClick(() => this.emergencyCall())
         .backgroundColor(this.isCalling ? Color.Gray : Color.Red) // 呼叫中灰色，否则红色
@@ -318,20 +347,12 @@ struct SOSPage {
         .enabled(!this.isCalling); // 呼叫中禁用按钮
 
       // 原有功能按钮
-      Button('获取SOS设备信息')
-        .onClick(() => this.getDeviceInfo())
+      Button('刷新信息')
+        .onClick(() => this.refreshAllData())
         .margin({ bottom: 10 })
         .enabled(!this.isLoading && !this.isCalling); // 其他操作时禁用
 
-      Button('查看SOS历史信息')
-        .onClick(() => {
-          this.isLoading = true;
-          this.getSOSHistory();
-        })
-        .margin({ bottom: 10 })
-        .enabled(!this.isLoading && !this.isCalling); // 其他操作时禁用
-
-      // 加载状态显示（区分普通加载和紧急呼叫）
+      // 加载状态显示
       if (this.isLoading) {
         Progress({ value: 0, total: 100 })
           .width('80%')
@@ -344,7 +365,7 @@ struct SOSPage {
           .margin({ bottom: 10 });
       }
 
-      // 设备信息展示（原有逻辑不变）
+      // 设备信息展示
       Column() {
         Text('标准SOS设备信息')
           .fontSize(18)
@@ -411,7 +432,7 @@ struct SOSPage {
         .margin({ bottom: 10 });
       }
 
-      // 历史记录展示（原有逻辑不变）
+      // 历史记录展示
       if (this.historyList.length > 0) {
         Text('SOS历史记录')
           .fontSize(18)
