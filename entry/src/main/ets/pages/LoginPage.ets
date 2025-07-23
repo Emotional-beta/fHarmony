@@ -28,11 +28,13 @@ struct LoginPage {
       TextInput({placeholder:'用户名',text:$$this.username})//默认值：text:‘内容’
         .width('61.8%')
         .backgroundColor(Color.White)
+        .opacity(0.9)
 
       TextInput({placeholder:'密码',text:$$this.password})//默认值：text:‘内容’
         .width('61.8%')
         .backgroundColor(Color.White)
         .type(InputType.Password)
+        .opacity(0.9)
 
       Row({space:5}){
         Checkbox()
@@ -51,7 +53,7 @@ struct LoginPage {
               this.getUIContext().getPromptAction().showToast({message:'请输入用户名',duration:2000})
 
             }else if(!this.agree){
-              this.getUIContext().getPromptAction().showToast({message:'请勾选《信息安全协议》',duration:2000})
+              this.getUIContext().getPromptAction().showToast({message:'请勾选《信息安全协议》',duration:2000,textColor:'#FFFFFF'})
             }
             //密码判断
             else if(this.password == null || this.password.trim().length == 0){
