@@ -8,9 +8,9 @@
     "pages/SwitchPage",
     "pages/WaterPage",
     "pages/DoorPage",
-    "pages/MinePage",
-    "pages/RoomPage",
-    "pages/ScenePage",
-    "pages/DiscoverPage"
+
+    "pages/RoomPage"
+
+
   ]
 }
