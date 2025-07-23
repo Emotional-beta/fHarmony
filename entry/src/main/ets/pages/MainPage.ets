@@ -2,7 +2,6 @@ import { preferences } from '@kit.ArkData';
 import axios, { AxiosError, AxiosResponse } from '@ohos/axios';
 import { BusinessError } from '@ohos.base';
 import { ComponentContent } from '@kit.ArkUI';
-
 interface Device {
   rname: string;
   deviceName: string;
@@ -74,6 +73,8 @@ function customRefreshingContent(params: Params): void {
 @Component
 
 struct MainPage {
+  @State showDialog: boolean = false;
+  @State deviceToDeleteIndex: number = -1;
   @State isRefreshing: boolean = false;
   @State maxRefreshingHeight: number = 100.0;
   @State ratio: number = 1;
@@ -175,6 +176,7 @@ struct MainPage {
     let uiContext = this.getUIContext();
     this.params = new Params(RefreshStatus.Inactive);
     this.contentNode = new ComponentContent(uiContext, wrapBuilder(customRefreshingContent), this.params);
+    this.fetchAndSaveDevices()
   }
 
   build() {
@@ -191,17 +193,41 @@ struct MainPage {
                 this.isRefreshing = true;
                 this.fetchAndSaveDevices().then(() => {
                   this.isRefreshing = false;
+                  this.getUIContext().getPromptAction().showToast({ message: '刷新成功' });
                 });
               }
             })
           Grid() {
             ForEach(this.deviceList, (item: DeviceWithType, index: number) => {
               GridItem() {
-                Column({ space: 5 }) {
+                Row({ space: 10 }) {
+                  // 左侧图标
                   Image(this.getDeviceIcon(item.device.maintype))
-                    .width(72)
-                  Text(item.device.rname)
+                    .width(50)
+                    .height(50)
+                    .borderRadius(6)
+
+                  // 右侧文字信息（自动换行 + 省略）
+                  Column({ space: 2 }) {
+                    Text(item.device.rname)
+                      .fontSize(18)
+                      .fontWeight(FontWeight.Regular)
+                      .maxLines(1)
+                      .textOverflow({ overflow: TextOverflow.Ellipsis })
+
+                    Text(item.device.ieee)
+                      .fontSize(15)
+                      .fontColor('#888888')
+                      .maxLines(1)
+                      .textOverflow({ overflow: TextOverflow.Ellipsis })
+                  }
+                  .alignItems(HorizontalAlign.Start)
+                  .width('90%') // 让右侧内容剩余90%
                 }
+                .padding(10)
+                .backgroundColor('#F7F8FA')
+                .borderRadius(10)
+                .width('100%')
                 .onClick(() => {
                   this.getUIContext().getRouter().pushUrl({ url: this.getDeviceUrl(item.device.maintype) });
                 })
@@ -212,19 +238,11 @@ struct MainPage {
           .height('100%')
           .width('100%')
           .padding({ left: 18, right: 18 }) // 内边距
-          .columnsTemplate('1fr 1fr')       // 两列
+          .columnsTemplate('1fr')       // 1列
           .columnsGap(20)                   // 列间距
           .rowsGap(10)                      // 行间距
-          .gesture(
-            LongPressGesture({
-              repeat: false,
-              duration: 800
-          })
-              .onAction(()=>{
-
-              })
-          )
         }
+
       }
       .tabBar('设备')
 
