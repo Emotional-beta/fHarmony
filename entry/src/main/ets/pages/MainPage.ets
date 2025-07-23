@@ -158,9 +158,9 @@ struct MainPage {
       case 'hd': // 人体活动
         return 'pages/MSPage';
       case 'water':
-        return 'pages/NetPage';
+        return 'pages/WaterPage';
       case 'temperature_humidity':
-        return 'pages/NetPage';
+        return 'pages/TempHumPage';
       case 'magnetic':
         return 'pages/DoorPage';
       case 'outlet':
