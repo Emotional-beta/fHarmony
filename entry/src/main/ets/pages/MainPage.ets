@@ -1,23 +1,9 @@
 import { preferences } from '@kit.ArkData';
 import axios, { AxiosError, AxiosResponse } from '@ohos/axios';
+import { BusinessError } from '@ohos.base';
+import { ComponentContent } from '@kit.ArkUI';
 
-// 定义数据类型接口
-interface Property {
-  name: string;
-  id: string;
-  value: string;
-  display_index: string;
-  update_datetime: string;
-  keyValue?: string;
-}
-
-interface ParentInfo {
-  type: string;
-  ieee: string;
-  dispName: string;
-}
-
-interface DeviceInfo {
+interface Device {
   rname: string;
   deviceName: string;
   out_of_date: boolean;
@@ -35,165 +21,209 @@ interface DeviceInfo {
   parentInfo: ParentInfo;
   maintype: string;
   subtype: string;
-  status?: string;
-  power?: string;
-  properties?: Property[];
+  status?: string; // 仅socks有该字段
+  power?: string;  // 仅socks有该字段
+  properties?: DeviceProperty[]; // 仅envs有该字段
   devOrder: string;
   devCommonOrder: string;
 }
-
-interface ProcessInfo {
-  processId: string;
-  status: string;
-  title: string;
-  mode: string;
-  modeEn: string;
-  alias: string;
-  processOrder: string;
-  processCommonOrder: string;
-  syncStatus: string;
-  tabId: string;
-  tabName: string | null;
-  roomid: string;
-  roomname: string;
-  cid: string;
-  dispOrder: string;
+interface ParentInfo {
+  type: string;
+  ieee: string;
+  dispName: string;
 }
-
+interface DeviceProperty {
+  name: string;
+  id: string;
+  value: string;
+  display_index: string;
+  update_datetime: string;
+  keyValue?: string; // 可选字段（部分属性有该字段）
+}
+interface DeviceWithType {
+  device: Device;
+  type: string; // 'socks' | 'envs'
+}
 interface DeviceInfos {
-  socks: DeviceInfo[];
-  envs: DeviceInfo[];
+  socks?: Device[];
+  envs?: Device[];
 }
 
-interface ResponseData {
-  processInfos: ProcessInfo[];
-  deviceInfos: DeviceInfos;
-  groupInfos: string[]; // 根据实际情况定义
-}
+class Params {
+  refreshStatus: RefreshStatus = RefreshStatus.Inactive;
 
-interface ApiResponse {
-  code: string;
-  data: ResponseData;
-}
-class DataProcessor {
-  // 解析JSON数据
-  static parseData(jsonString: string): ApiResponse {
-    return JSON.parse(jsonString) as ApiResponse;
+  constructor(refreshStatus: RefreshStatus) {
+    this.refreshStatus = refreshStatus;
   }
-
-  // 获取所有设备名称
-  static getAllDeviceNames(data: ApiResponse): string[] {
-    const names: string[] = [];
-    data.data.deviceInfos.socks.forEach(device => names.push(device.rname));
-    data.data.deviceInfos.envs.forEach(device => names.push(device.rname));
-    return names;
-  }
-
 }
+@Builder
+function customRefreshingContent(params: Params): void {
+  // 使用 params.refreshStatus 控制样式等
+  Stack() {
+    Row() {
+      LoadingProgress().height(32)
+    }
+    .alignItems(VerticalAlign.Center)
+  }
+  .align(Alignment.Center)
+  .constraintSize({ minHeight: 32 })
+  .width("100%")
+}
+
 @Entry
 @Component
+
 struct MainPage {
-  aboutToAppear():void{
-      let url = 'http://192.168.100.1/api/room/allDevAndProcess';
-      let pref=preferences.getPreferencesSync(getContext(),{name:'zbox.xml'});
-      let cookie = pref.getSync('cookie','') as string;
-      // 省略4个参数 获取所有设备信息
-      //传入IEEE 获取指定设备信息
-      axios.post(url,null,{timeout:1000,headers:{'Content-Type':'application/json','cookie':cookie}})
-        .then((resp:AxiosResponse)=>{
-          console.log(JSON.stringify(resp));
-        })
-        .catch((err:AxiosError)=>{
-          this.getUIContext().getPromptAction().showToast({ message: err.message })
-        })
+  @State isRefreshing: boolean = false;
+  @State maxRefreshingHeight: number = 100.0;
+  @State ratio: number = 1;
+  @State deviceList: DeviceWithType[] = [];
+  private async fetchAndSaveDevices(): Promise<void> {
+    const url = 'http://192.168.100.1/api/room/allDevAndProcess';
+    try {
+      const pref = preferences.getPreferencesSync(getContext(), { name: 'zbox.xml' });
+      const cookie = pref.getSync('cookie', '') as string;
+      const resp: AxiosResponse = await axios.post(url, null, {
+        timeout: 1000,
+        headers: {
+          'Content-Type': 'application/json',
+          'cookie': cookie
+        }
+      });
+      if (resp.data?.data?.deviceInfos) {
+        const rawData: DeviceInfos = resp.data.data.deviceInfos;
+
+        // 合并并显式标注类型
+        const mergedDevices: DeviceWithType[] = [];
+
+        if (rawData.socks) {
+          (rawData.socks as Device[]).forEach((dev: Device) => {
+            mergedDevices.push({ device: dev, type: 'socks' });
+          });
+        }
+
+        if (rawData.envs) {
+          (rawData.envs as Device[]).forEach((dev: Device) => {
+            mergedDevices.push({ device: dev, type: 'envs' });
+          });
+        }
+
+        this.deviceList = mergedDevices;
+        await this.saveToPreferences(mergedDevices);
+
+        this.getUIContext().getPromptAction().showToast({ message: '设备信息获取并保存成功' });
+      } else {
+        this.getUIContext().getPromptAction().showToast({ message: '设备数据格式错误' });
+      }
+    } catch (err) {
+      if (err instanceof AxiosError) {
+        console.error(`请求失败: ${err.message}`);
+        this.getUIContext().getPromptAction().showToast({ message: `请求失败: ${err.message}` });
+      } else {
+        const error = err as BusinessError;
+        console.error(`操作失败: ${error.code} - ${error.message}`);
+        this.getUIContext().getPromptAction().showToast({ message: '设备信息处理失败' });
+      }
+    }
   }
+  private async saveToPreferences(deviceInfos: DeviceWithType[]): Promise<void>{}
+  private showToast(message: string): void {
+    this.getUIContext().getPromptAction().showToast({
+      message: message,
+      duration: 2000
+    });
+  }
+  private getDeviceIcon(type: string): Resource {
+    switch (type) {
+      case 'sos':
+        return $r('app.media.icon_main_net_a');
+      case 'hd': // 人体活动
+        return $r('app.media.icon_main_cloud_a');
+      case 'water':
+        return $r('app.media.icon_main_download_a');
+      case 'temperature_humidity':
+        return $r('app.media.icon_main_data_a');
+      case 'magnetic':
+        return $r('app.media.icon_main_scene_a');
+      case 'outlet':
+        return $r('app.media.icon_main_photo_a');
+      default:
+        return $r('app.media.icon_main_photo_a');
+    }
+  }
+  private getDeviceUrl(type: string): string {
+    switch (type) {
+      case 'sos':
+        return 'pages/SOSPage';
+      case 'hd': // 人体活动
+        return 'pages/MSPage';
+      case 'water':
+        return 'pages/WaterPage';
+      case 'temperature_humidity':
+        return 'pages/TempHumPage';
+      case 'magnetic':
+        return 'pages/DoorPage';
+      case 'outlet':
+        return 'pages/SwitchPage';
+      default :
+        return 'pages/DefaultPage'
+    }
+  }
+  private contentNode?: ComponentContent<Object> = undefined;
+  private params: Params = new Params(RefreshStatus.Inactive);
+  aboutToAppear(): void {
+    let uiContext = this.getUIContext();
+    this.params = new Params(RefreshStatus.Inactive);
+    this.contentNode = new ComponentContent(uiContext, wrapBuilder(customRefreshingContent), this.params);
+  }
+
   build() {
+
     Tabs({barPosition:BarPosition.End}){
       TabContent(){
         Column(){
-          Grid(){//栅格式布局
-            //读取本地的devices.xml
-            //for each：
-                //根据xml里的类型来弄图片
-                //根据xml里的名字来弄名字
-                //右上生成‘设置’按钮
-                  //1.重命名，2.删除
-            //右上角button增加设备
-                //手动添加设备类型（下选框）、设备名、ieee地址
-                //自动扫描设备
-
-            GridItem(){
-              Column({ space: 5 }){
-                Image($r('app.media.icon_main_photo_a'))
-                  .width(72)
-                Text('智能插座')
-              }.onClick(()=>{
-                //this.getUIContext().getRouter().pushUrl({url:'pages/SwitchPage'});
-              })
-            }
-            GridItem(){
-              Column({ space: 5 }){
-                Image($r('app.media.icon_main_net_a'))
-                  .width(72)
-                Text('标准SOS')
-              }.onClick(()=>{
-                this.getUIContext().getRouter().pushUrl({url:'pages/SOSPage'});
-              })
-            }
-            GridItem(){
-              Column({ space: 5 }){
-                Image($r('app.media.icon_main_cloud_a'))
-                  .width(72)
-                Text('标准人体活动传感器')
-              }.onClick(()=>{
-                this.getUIContext().getRouter().pushUrl({url:'pages/MSPage'});
-              })
-            }
-            GridItem(){
-              Column({ space: 5 }){
-                Image($r('app.media.icon_main_download_a'))
-                  .width(72)
-                Text('标准水浸传感器')
-              }.onClick(()=>{
-                this.getUIContext().getRouter().pushUrl({url:'pages/NetPage'});
-              })
-            }
-            GridItem(){
-              Column({ space: 5 }){
-                Image($r('app.media.icon_main_data_a'))
-                  .width(72)
-                Text('标准温湿度传感器')
-              }.onClick(()=>{
-                this.getUIContext().getRouter().pushUrl({url:'pages/NetPage'});
-              })
-            }
-            GridItem(){
-              Column({ space: 5 }){
-                Image($r('app.media.icon_main_scene_a'))
-                  .width(72)
-                Text('标准门磁传感器')
-              }.onClick(()=>{
-                this.getUIContext().getRouter().pushUrl({url:'pages/NetPage'});
-              })
-            }
-            GridItem(){
-              Column({ space: 5 }){
-                Image($r('app.media.icon_main_scene_a'))
-                  .width(72)
-                Text('增加新的设备')
+          Refresh({
+            refreshing: this.isRefreshing,
+            refreshingContent: this.contentNode
+          })
+            .onStateChange((status: RefreshStatus) => {
+              if (status === RefreshStatus.Refresh) {
+                this.isRefreshing = true;
+                this.fetchAndSaveDevices().then(() => {
+                  this.isRefreshing = false;
+                });
               }
-              .onClick(()=>{
-                this.getUIContext().getPromptAction().showToast({ message: '等待开发' })
-              })
-            }
+            })
+          Grid() {
+            ForEach(this.deviceList, (item: DeviceWithType, index: number) => {
+              GridItem() {
+                Column({ space: 5 }) {
+                  Image(this.getDeviceIcon(item.device.maintype))
+                    .width(72)
+                  Text(item.device.rname)
+                }
+                .onClick(() => {
+                  this.getUIContext().getRouter().pushUrl({ url: this.getDeviceUrl(item.device.maintype) });
+                })
+              }
+            })
+
           }
           .height('100%')
           .width('100%')
-          .padding({left:18,right:18})//内边距
-          .columnsTemplate('1fr 1fr')
-          .columnsGap(20) //列间距
-          .rowsGap(10) //行间距
+          .padding({ left: 18, right: 18 }) // 内边距
+          .columnsTemplate('1fr 1fr')       // 两列
+          .columnsGap(20)                   // 列间距
+          .rowsGap(10)                      // 行间距
+          .gesture(
+            LongPressGesture({
+              repeat: false,
+              duration: 800
+          })
+              .onAction(()=>{
 
+              })
+          )
         }
       }
       .tabBar('设备')

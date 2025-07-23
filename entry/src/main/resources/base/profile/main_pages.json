@@ -5,8 +5,9 @@
     "pages/ListPage",
     "pages/PrefPage",
     "pages/MSPage",
-    "pages/NetPage",
     "pages/SwitchPage",
-    "pages/WaterPage"
+    "pages/WaterPage",
+    "pages/SOSPage",
+    "pages/TempHumPage"
   ]
 }

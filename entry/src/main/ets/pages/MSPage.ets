@@ -9,7 +9,7 @@ interface IEEE {
 }
 interface terminalDefId{
   ieee:string
-  id:string
+  terminalDefId:string
 }
 @Entry
 @Component
@@ -23,13 +23,14 @@ struct MSPage {
   @State updateTime: string = 'N/A';
   @State out_of_date: string = 'N/A';
 
-  @State hrname: string = 'N/A';
-  @State hbattery: string = 'N/A';
-  @State hrssi: string = 'N/A';
+  @State htime: string = 'N/A';
+  @State hpast: string = 'N/A';
+  @State hdate: string = 'N/A';
   @State hvalue: string = 'N/A';
-  @State hupdateTime: string = 'N/A';
+  @State hupdateTime?: string = 'N/A';
   @State hout_of_date: string = 'N/A';
-
+  index:number = 0;
+  @State respdata :string[]=[];
   aboutToAppear(): void {
     let url = 'http://192.168.100.1/api/room/allDevAndProcess';
     let pref=preferences.getPreferencesSync(getContext(),{name:'zbox.xml'});
@@ -50,6 +51,7 @@ struct MSPage {
       .catch((err:AxiosError)=>{
         this.getUIContext().getPromptAction().showToast({ message: err.message })
       })
+
   }
   build() {
     Column({space:20}){
@@ -90,6 +92,7 @@ struct MSPage {
       Button('更新当前设备信息')
         .width('61.8%')
         .onClick(()=>{
+          this.respdata=[];
           let url = 'http://192.168.100.1/api/room/allDevAndProcess';
           let pref=preferences.getPreferencesSync(getContext(),{name:'zbox.xml'});
           let cookie = pref.getSync('cookie','') as string;
@@ -106,7 +109,7 @@ struct MSPage {
               this.updateTime=resp.data.data.deviceInfos.envs[0].updateTime;
               this.out_of_date=resp.data.data.deviceInfos.envs[0].out_of_date;
               this.getUIContext().getPromptAction().showToast({ message: '更新成功'});
-              Fetch
+
             })
             .catch((err:AxiosError)=>{
               this.getUIContext().getPromptAction().showToast({ message: err.message })
@@ -115,21 +118,35 @@ struct MSPage {
       Button('获取历史信息')
         .width('61.8%')
         .onClick(()=>{
+          this.respdata=[]
           let url = 'http://192.168.100.1/api/terminal/history/get';
           let pref=preferences.getPreferencesSync(getContext(),{name:'zbox.xml'});
           let cookie = pref.getSync('cookie','') as string;
           // 省略4个参数 获取所有设备信息
           //传入IEEE 获取指定设备信息
-          axios.post(url, {ieee:'5c0272fffe8576cb',id:'17674'} as terminalDefId,{timeout:1000,headers:{'Content-Type':'application/json','cookie':cookie}})
+          axios.post(url, {ieee:'5c0272fffe8576cb',terminalDefId:'17674'} as terminalDefId,{timeout:1000,headers:{'Content-Type':'application/json','cookie':cookie}})
             .then((resp:AxiosResponse)=>{
-              console.log(JSON.stringify(resp));
-              //this.hrname=resp.data.data.deviceInfos.envs[0].rname;
-
-              //this.hbattery=resp.data.data.deviceInfos.envs[0].battery;
-              // this.hrssi=resp.data.data.deviceInfos.envs[0].rssi;
-              //this.hvalue=resp.data.data.deviceInfos.envs[0].properties[0].value;
-              this.hupdateTime=resp.headers.date;
-              this.hout_of_date=resp.headers.keepalive;
+              console.log(JSON.stringify(resp.data.data));
+              //console.log(resp.data.data.length);
+              for(let i =1;i<=resp.data.data.length;i++){
+                this.hupdateTime=resp.data.data[i-1].update_datetime;
+                this.hpast=resp.data.data[i-1].past;
+                this.hvalue=resp.data.data[i-1].value;
+                //this.hdate=resp.data.data[0].date;
+                //this.htime=resp.data.data[0].time;
+                this.hout_of_date=resp.headers.keepalive;
+                //console.log('赋值');
+                this.respdata.push(i.toString());
+                this.respdata.push('更新时间：' + this.hupdateTime);
+                //console.log('更新时间：' + this.hupdateTime);
+                this.respdata.push('past：' + this.hpast);
+                //console.log('past：' + this.hpast);;
+                this.respdata.push('活动状态：' + this.hvalue);
+                //console.log('活动状态：' + this.hvalue);
+                this.respdata.push('在线状态：' + this.hout_of_date);
+                //console.log('在线状态：' + this.hout_of_date);
+                console.log(this.respdata[1]);
+              }
               this.getUIContext().getPromptAction().showToast({ message: '获取历史信息成功'});
 
             })
@@ -139,44 +156,26 @@ struct MSPage {
         })
       Text('历史信息：')
         .fontSize('24');
+
       List() {
         //参数1 循环对象 参数2 循环体 e表示数组中每一个元素
+        ForEach(this.respdata,(e:string)=>{
+          ListItem() {
+            Text(e)
+              .fontSize(18)
+          }
 
-        ListItem() {
-          Text('设备名称：' + this.hrname)
-            .fontSize(24)
-        }
+        })
 
-        ListItem() {
-          Text('在线状态：' + this.hout_of_date)
-            .fontSize(24)
-        }
 
-        ListItem() {
-          Text('电量：' + this.hbattery + '%')
-            .fontSize(24)
-        }
 
-        ListItem() {
-          Text('信号强度：' + this.hrssi + 'dBm')
-            .fontSize(24)
-        }
-
-        ListItem() {
-          Text('活动状态：' + this.hvalue)
-            .fontSize(24)
-        }
-
-        ListItem() {
-          Text('更新时间：' + this.hupdateTime)
-            .fontSize(24)
-        }
       }.divider({strokeWidth:1})
+
     }
     .height('100%')
     .width('100%')
-    .margin({top:50})
-    .padding({left:18,right:18})//内边距
+    .margin({top:50,bottom:30})
+    .padding({left:18,right:18,bottom:30})//内边距
 
   }
 }
