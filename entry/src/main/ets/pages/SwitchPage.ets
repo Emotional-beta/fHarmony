@@ -54,23 +54,7 @@ struct SocketPage {
           }
           .padding(10)
           .width('100%')
-
-          Divider()
-            .strokeWidth(1)
-            .color(Color.Gray)
-          //.margin({ vertical: 5 })
-
-          Row() {
-            Image($r('app.media.socket_switch_on'))
-              .width(24)
-              .height(24)
-              .margin({ right: 12 })
-            Text('功率: ' + this.power)
-              .fontSize(18)
-          }
-          .padding(10)
-          .width('100%')
-
+          
           Divider()
             .strokeWidth(1)
             .color(Color.Gray)
