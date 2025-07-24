@@ -2,7 +2,6 @@ import axios, { AxiosError, AxiosResponse } from '@ohos/axios'
 import { preferences } from '@kit.ArkData'
 import promptAction from '@ohos.promptAction'
 
-
 interface DeviceProperty {
   value: string;
   name?: string;
@@ -26,7 +25,7 @@ struct SocketPage {
   @State properties: string = 'N/A';
   @State rname: string = 'N/A';
   @State isLoading: boolean = false;
-
+  private timerId: number = 0;
 
   @Builder loadingBuilder() {
     Column() {
@@ -40,6 +39,18 @@ struct SocketPage {
 
   aboutToAppear() {
     this.fetchDeviceData();
+    // +++ 修改：明确指定setInterval返回类型为number +++
+    this.timerId = setInterval(() => {
+      console.log('定时自动更新设备信息');
+      this.fetchDeviceData();
+    }, 10000) as number; // +++ 仅修改此处，移除unknown类型转换 +++
+  }
+
+  aboutToDisappear() {
+    if (this.timerId) {
+      clearInterval(this.timerId);
+      this.timerId = 0;
+    }
   }
 
   private fetchDeviceData() {
@@ -69,16 +80,19 @@ struct SocketPage {
           resp.data.data.deviceInfos.envs &&
             resp.data.data.deviceInfos.envs.length > 2) {
             const envs = resp.data.data.deviceInfos.envs[2] as SockDevice;
-
             setTimeout(() => {
               this.properties = envs.properties && envs.properties[0] ?
               envs.properties[0].value : 'N/A';
               this.rname = envs.rname || 'N/A';
               this.battery = envs.battery || 'N/A';
               this.rssi = envs.rssi || 'N/A';
-              this.updateTime = envs.updateTime || 'N/A';
+              // +++ 强制时间更新 +++
+              this.updateTime = envs.updateTime ?
+                envs.updateTime + ' ' : // 添加空格确保更新
+              new Date().toLocaleString(); // 若无时间则使用当前时间
               this.isLoading = false;
             }, 0);
+
           } else {
             throw new Error('服务器返回数据格式不正确');
           }
@@ -97,7 +111,6 @@ struct SocketPage {
 
   private showErrorToast(err: Error) {
     let message = '请求失败: ' + err.message;
-
     promptAction.showToast({
       message,
       duration: 2000
@@ -107,7 +120,7 @@ struct SocketPage {
   build() {
     Column({ space: 20 }) {
       Column({ space: 20 }) {
-       
+
         if (this.isLoading) {
           this.loadingBuilder()
         }
