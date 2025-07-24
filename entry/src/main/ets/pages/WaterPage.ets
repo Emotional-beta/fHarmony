@@ -1,58 +1,118 @@
 import axios, { AxiosError, AxiosResponse } from '@ohos/axios'
 import { preferences } from '@kit.ArkData'
+import promptAction from '@ohos.promptAction'
+
+
+interface DeviceProperty {
+  value: string;
+  name?: string;
+  type?: string;
+}
 
 interface SockDevice {
-
   battery: string;
   rssi: string;
   updateTime: string;
   rname: string;
+  properties?: DeviceProperty[];
 }
 
 @Entry
 @Component
-
 struct SocketPage {
   @State battery: string = 'N/A';
   @State rssi: string = 'N/A';
   @State updateTime: string = 'N/A';
   @State properties: string = 'N/A';
   @State rname: string = 'N/A';
-  //  新增aboutToAppear生命周期函数
-  aboutToAppear() {
-    let url = 'http://192.168.100.1/api/room/allDevAndProcess';
-    let pref = preferences.getPreferencesSync(getContext(), { name: 'zbox.xml' });
-    let cookie = pref.getSync('cookie', '') as string;
+  @State isLoading: boolean = false;
 
-    axios.post(url, null, {
-      headers: {
-        'Content-Type': 'application/json',
-        'cookie': cookie
-      },
-      timeout: 1000
-    })
-      .then((resp: AxiosResponse) => {
-        console.log(JSON.stringify(resp));
-        if (resp.data.code === '0000000') {
-          const envs: SockDevice = resp.data.data.deviceInfos.envs[2];
-          this.properties = resp.data.data.deviceInfos.envs[2].properties[0].value;
-          this.rname = envs.rname;
-          this.battery = envs.battery;
-          this.rssi = envs.rssi;
-          this.updateTime = envs.updateTime;
-        }
-      })
-      .catch((err: AxiosError) => {
-        this.getUIContext().getPromptAction().showToast({ message: "初始化异常" + err.message })
+
+  @Builder loadingBuilder() {
+    Column() {
+      Progress({
+        value: 0,
+        total: 1,
+        style: ProgressStyle.Ring
+      }).width(50).height(50)
+    }.margin({ top: 20 })
+  }
+
+  aboutToAppear() {
+    this.fetchDeviceData();
+  }
+
+  private fetchDeviceData() {
+    this.isLoading = true;
+    let url = 'http://192.168.100.1/api/room/allDevAndProcess';
+
+    try {
+      let pref = preferences.getPreferencesSync(getContext(this), {
+        name: 'zbox.xml'
       });
+      let cookie = pref.getSync('cookie', '') as string;
+
+      axios.post(url, null, {
+        headers: {
+          'Content-Type': 'application/json',
+          'cookie': cookie
+        },
+        timeout: 3000
+      })
+        .then((resp: AxiosResponse) => {
+          console.info('API响应数据:', JSON.stringify(resp.data));
+
+          if (resp.data &&
+            resp.data.code === '0000000' &&
+          resp.data.data &&
+          resp.data.data.deviceInfos &&
+          resp.data.data.deviceInfos.envs &&
+            resp.data.data.deviceInfos.envs.length > 2) {
+            const envs = resp.data.data.deviceInfos.envs[2] as SockDevice;
+
+            setTimeout(() => {
+              this.properties = envs.properties && envs.properties[0] ?
+              envs.properties[0].value : 'N/A';
+              this.rname = envs.rname || 'N/A';
+              this.battery = envs.battery || 'N/A';
+              this.rssi = envs.rssi || 'N/A';
+              this.updateTime = envs.updateTime || 'N/A';
+              this.isLoading = false;
+            }, 0);
+          } else {
+            throw new Error('服务器返回数据格式不正确');
+          }
+        })
+        .catch((err: Error) => {
+          console.error('请求错误:', err);
+          this.isLoading = false;
+          this.showErrorToast(err);
+        });
+    } catch (e) {
+      console.error('本地错误:', e);
+      this.isLoading = false;
+      this.showErrorToast(e as Error);
+    }
+  }
+
+  private showErrorToast(err: Error) {
+    let message = '请求失败: ' + err.message;
+
+    promptAction.showToast({
+      message,
+      duration: 2000
+    });
   }
 
   build() {
     Column({ space: 20 }) {
       Column({ space: 20 }) {
+       
+        if (this.isLoading) {
+          this.loadingBuilder()
+        }
 
         Column() {
-
           Row() {
             Image($r('app.media.water_sensor'))
               .width(24)
@@ -64,12 +124,9 @@ struct SocketPage {
           .padding(10)
           .width('100%')
 
-
           Divider()
             .strokeWidth(1)
             .color(Color.Gray)
-
-
 
           Row() {
             Image($r('app.media.water_sensor_normal'))
@@ -86,8 +143,6 @@ struct SocketPage {
             .strokeWidth(1)
             .color(Color.Gray)
 
-
-
           Row() {
             Image($r('app.media.battery'))
               .width(24)
@@ -103,8 +158,6 @@ struct SocketPage {
             .strokeWidth(1)
             .color(Color.Gray)
 
-
-
           Row() {
             Image($r('app.media.signal'))
               .width(24)
@@ -119,8 +172,6 @@ struct SocketPage {
           Divider()
             .strokeWidth(1)
             .color(Color.Gray)
-
-
 
           Row() {
             Image($r('app.media.clock'))
@@ -146,33 +197,9 @@ struct SocketPage {
 
         Button('更新设备信息')
           .width('80%')
+          .enabled(!this.isLoading)
           .onClick(() => {
-            let url = 'http://192.168.100.1/api/room/allDevAndProcess'
-            let pref = preferences.getPreferencesSync(getContext(), { name: 'zbox.xml' });
-            let cookie = pref.getSync('cookie', '') as string;
-
-            axios.post(url, null, {
-              headers: {
-                'Content-Type': 'application/json',
-                'cookie': cookie
-              },
-              timeout: 1000
-            })
-              .then((resp: AxiosResponse) => {
-                console.log(JSON.stringify(resp));
-                if (resp.data.code === '0000000') {
-                  const envs: SockDevice = resp.data.data.deviceInfos.envs[2];
-                  this.properties = resp.data.data.deviceInfos.envs[2].properties[0].value;
-                  this.rname = envs.rname;
-                  this.battery = envs.battery;
-                  this.rssi = envs.rssi;
-                  this.updateTime = envs.updateTime;
-                }
-
-              })
-              .catch((err: AxiosError) => {
-                this.getUIContext().getPromptAction().showToast({ message: "异常" + err.message })
-              })
+            this.fetchDeviceData();
           })
       }
       .backgroundImage($r("app.media.background2"))
