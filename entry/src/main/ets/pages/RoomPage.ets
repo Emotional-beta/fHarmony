@@ -19,6 +19,13 @@ interface room {
   isDisp:string,
   dispIndex:string
 }
+interface  updateName{
+  roomId:string
+  name:string
+}
+interface del{
+  roomId:string
+}
 enum type{
   home,
   school,
@@ -30,25 +37,11 @@ enum type{
 struct RoomPage {
   @State type:string='';
   @State name:string='';
-  @State rname: string = 'N/A';
-  @State battery: string = 'N/A';
-  @State rssi: string = 'N/A';
+  @State newname: string = '';
   @State value: string = 'N/A';
   @State updateTime: string = 'N/A';
   @State out_of_date: string = 'N/A';
-  @State door_propertie_name1:string ='N/A'
-  @State door_propertie_name2:string ='N/A'
-  @State door_propertie_value1:string ='N/A'
-  @State door_propertie_value2:string ='N/A'
-  @State door_propertie_time1:string ='N/A'
-  @State door_propertie_time2:string ='N/A'
 
-  @State htime: string = 'N/A';
-  @State hpast: string = 'N/A';
-  @State hdate: string = 'N/A';
-  @State hvalue: string = 'N/A';
-  @State hupdateTime?: string = 'N/A';
-  @State hout_of_date: string = 'N/A';
   //index:number = 0;
   @State respdata :room[]=[];
   @State typeindex:type=0;
@@ -139,7 +132,7 @@ struct RoomPage {
                 }
 
 
-                this.getUIContext().getPromptAction().showToast({ message: '获取房间信息成功'});
+                this.getUIContext().getPromptAction().showToast({ message: '获取房间信息成功,请点击“获取房间信息”进行刷新'});
 
               })
               .catch((err:AxiosError)=>{
@@ -148,7 +141,9 @@ struct RoomPage {
           })
         Text('房间信息：')
           .fontSize('24');
-
+        TextInput({placeholder:'修改房间名',text:$$this.newname})//默认值：text:‘内容’
+          .width('61.8%')
+          .backgroundColor(Color.White)
         List() {
           //参数1 循环对象 参数2 循环体 e表示数组中每一个元素
           ForEach(this.respdata,(e:room)=>{
@@ -174,10 +169,49 @@ struct RoomPage {
                   }
                   Text('创建时间：'+e.create_datetime)
                     .fontSize(18)
-                  Button('修改房间')
-                    .width('61.8%')
+                  Button('修改房间名称')
+                    .onClick(()=>{
+                      let url = 'http://192.168.100.1/api/room/updateName';
+                      let pref=preferences.getPreferencesSync(getContext(),{name:'zbox.xml'});
+                      let cookie = pref.getSync('cookie','') as string;
+                      axios.post(url, { roomId:e.id,name:this.newname } as updateName,{timeout:1000,headers:{'Content-Type':'application/json','cookie':cookie}})
+                        .then((resp:AxiosResponse)=>{
+                          console.log(JSON.stringify(resp.data.data));
+                          //console.log(resp.data.data.length);
+                          if(resp.data.code=='0000000')
+                          {
+
+                            this.getUIContext().getPromptAction().showToast({ message: '修改房间信息成功' });
+                          }else{
+                            this.getUIContext().getPromptAction().showToast({ message: '修改房间信息失败' });
+                          }
+
+                        })
+                        .catch((err:AxiosError)=>{
+                          this.getUIContext().getPromptAction().showToast({ message: err.message })
+                        })                    })
+
                   Button('删除房间')
-                    .width('61.8%')
+                    .onClick(()=>{
+                      let url = 'http://192.168.100.1/api/room/del';
+                      let pref=preferences.getPreferencesSync(getContext(),{name:'zbox.xml'});
+                      let cookie = pref.getSync('cookie','') as string;
+                      axios.post(url, { roomId:e.id} as del,{timeout:1000,headers:{'Content-Type':'application/json','cookie':cookie}})
+                        .then((resp:AxiosResponse)=>{
+                          console.log(JSON.stringify(resp.data.data));
+                          //console.log(resp.data.data.length);
+                          if(resp.data.code=='0000000')
+                          {
+
+                            this.getUIContext().getPromptAction().showToast({ message: '删除成功' });
+                          }else{
+                            this.getUIContext().getPromptAction().showToast({ message: '删除失败' });
+                          }
+
+                        })
+                        .catch((err:AxiosError)=>{
+                          this.getUIContext().getPromptAction().showToast({ message: err.message })
+                        })                    })
 
                 }
               }
