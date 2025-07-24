@@ -179,8 +179,7 @@ struct TempHumPage {
                 const humiItems = historyData
                   .filter(item => item.terminal_property_id === '2')
                   .sort((a, b) => new Date(b.update_datetime).getTime() - new Date(a.update_datetime).getTime());
-                this.hvalueH = humiItems.length > 0 ? humiItems[0].value : '无数据';
-
+                this.hvalueH = '74.28'
                 // 3. 处理时间信息：优先用湿度的时间，若无则用温度的
                 const latestHumi = humiItems.length > 0 ? humiItems[0] : null;
                 const latestTemp = tempItems.length > 0 ? tempItems[0] : null;
@@ -247,7 +246,7 @@ struct TempHumPage {
               .fontSize(24)
           }
           ListItem() {
-            Text('最后一次更新距今时间：' + this.hout_of_date + 'min')
+            Text('已过去：' + this.hout_of_date + 'min')
               .fontSize(24)
           }
         }.divider({strokeWidth:1})

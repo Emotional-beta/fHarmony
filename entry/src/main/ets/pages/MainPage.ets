@@ -1,7 +1,7 @@
 import { preferences } from '@kit.ArkData';
 import axios, { AxiosError, AxiosResponse } from '@ohos/axios';
 import { BusinessError } from '@ohos.base';
-import { ComponentContent } from '@kit.ArkUI';
+import { ComponentContent ,PromptAction} from '@kit.ArkUI';
 interface Device {
   rname: string;
   deviceName: string;
@@ -79,6 +79,9 @@ struct MainPage {
   @State maxRefreshingHeight: number = 100.0;
   @State ratio: number = 1;
   @State deviceList: DeviceWithType[] = [];
+  @State showNameDialog: boolean = false;
+  @State tempDeviceName: string = '';
+  @State currentEditIndex: number = -1;
   private async fetchAndSaveDevices(): Promise<void> {
     const url = 'http://192.168.100.1/api/room/allDevAndProcess';
     try {
@@ -170,6 +173,13 @@ struct MainPage {
         return 'pages/DefaultPage'
     }
   }
+  private editDeviceName(index: number): void {
+    this.currentEditIndex = index;
+    this.tempDeviceName = this.deviceList[index].device.rname; // 预填原始名称
+    this.showNameDialog = true;
+  }
+
+
   private contentNode?: ComponentContent<Object> = undefined;
   private params: Params = new Params(RefreshStatus.Inactive);
   aboutToAppear(): void {
@@ -209,11 +219,47 @@ struct MainPage {
 
                   // 右侧文字信息（自动换行 + 省略）
                   Column({ space: 2 }) {
-                    Text(item.device.rname)
-                      .fontSize(18)
-                      .fontWeight(FontWeight.Regular)
-                      .maxLines(1)
-                      .textOverflow({ overflow: TextOverflow.Ellipsis })
+                    Row({ space: 8 }){
+                      Text(item.device.rname)
+                        .fontSize(18)
+                        .fontWeight(FontWeight.Regular)
+                        .maxLines(1)
+                        .textOverflow({ overflow: TextOverflow.Ellipsis })
+
+                      Text('✎')
+                        .fontSize(18)
+                        .fontColor('#666666')
+                        .onClick(() => {
+                          this.getUIContext().getPromptAction().showActionMenu
+                          ({
+                            title: '操作菜单',
+                            buttons: [
+                              {
+                                text: '修改',
+                                color: '#ff5076e5'
+                              },
+                              {
+                                text: '删除', color: '#ff5076e5'
+                              }
+                            ]
+
+                          })
+                            .then(data => {
+                              console.info('clickButton ' + data.index)
+                              if (data.index === 1) { // 删除设备
+                                this.deviceList.splice(index, 1)
+                                this.deviceList = [...this.deviceList]
+                                this.showToast('设备已删除')
+                              }
+                              else if (data.index === 0) { // 修改名称
+                                this.editDeviceName(index)
+                              }
+                            })
+                            .catch((err: Error) => {
+                              console.info('弹出菜单失败: ' + err)
+                            })
+                        })
+                    }
 
                     Text(item.device.ieee)
                       .fontSize(15)
