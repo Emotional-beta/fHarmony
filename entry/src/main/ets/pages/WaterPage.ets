@@ -39,11 +39,11 @@ struct SocketPage {
 
   aboutToAppear() {
     this.fetchDeviceData();
-    // +++ 修改：明确指定setInterval返回类型为number +++
+
     this.timerId = setInterval(() => {
       console.log('定时自动更新设备信息');
       this.fetchDeviceData();
-    }, 10000) as number; // +++ 仅修改此处，移除unknown类型转换 +++
+    }, 10000) as number;
   }
 
   aboutToDisappear() {
@@ -86,7 +86,7 @@ struct SocketPage {
               this.rname = envs.rname || 'N/A';
               this.battery = envs.battery || 'N/A';
               this.rssi = envs.rssi || 'N/A';
-              // +++ 强制时间更新 +++
+              //  强制时间更新
               this.updateTime = envs.updateTime ?
                 envs.updateTime + ' ' : // 添加空格确保更新
               new Date().toLocaleString(); // 若无时间则使用当前时间

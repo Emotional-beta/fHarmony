@@ -54,7 +54,7 @@ struct SocketPage {
           }
           .padding(10)
           .width('100%')
-          
+
           Divider()
             .strokeWidth(1)
             .color(Color.Gray)
